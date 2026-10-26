@@ -47,11 +47,10 @@ export class SupabaseRest {
   private async request(path: string, init: RequestInit & { token?: string | null }): Promise<{ status: number; body: unknown }> {
     const ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
     const timer = ctrl ? setTimeout(() => ctrl.abort(), TIMEOUT_MS) : null;
-    const headers: Record<string, string> = {
-      apikey: this.anonKey,
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${init.token ?? this.anonKey}`,
-    };
+    // La chiave pubblica va solo nell'header apikey (compatibile con chiavi "publishable" e legacy "anon");
+    // Authorization porta soltanto il token di una sessione utente.
+    const headers: Record<string, string> = { apikey: this.anonKey, 'Content-Type': 'application/json' };
+    if (init.token) headers.Authorization = `Bearer ${init.token}`;
     let res: Response;
     try {
       res = await this.fetchFn(this.url + path, { ...init, headers: { ...headers, ...(init.headers as Record<string, string> | undefined) }, signal: ctrl?.signal });
