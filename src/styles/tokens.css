@@ -1,0 +1,63 @@
+/* Travel Recovery — design tokens
+   Direzione: "laguna e segnale". Superfici chiare e fredde, un blu-laguna profondo
+   per le aree di viaggio e un ambra da tabellone partenze come unico accento d'azione.
+   Il dispositivo grafico ricorrente è il biglietto con perforazione. */
+
+:root {
+  --lagoon-900: #0d272d;
+  --lagoon-800: #123840;
+  --lagoon-700: #1b4b54;
+  --lagoon-500: #3f727a;
+  --lagoon-100: #dce8e6;
+  --lagoon-50: #edf3f2;
+
+  --paper: #f3f5f2;
+  --card: #ffffff;
+  --line: #d3dcd8;
+  --line-strong: #a9b8b4;
+  --ink: #102a2f;
+  --ink-soft: #3b5257;
+  --muted: #5a6d70;
+
+  --signal: #f2b33d;
+  --signal-strong: #e09c1a;
+  --signal-soft: #fdf0d3;
+
+  --ok: #1e7351;
+  --ok-soft: #e1f1e9;
+  --warn: #8e5410;
+  --warn-soft: #fbecd6;
+  --no: #8f3a31;
+  --no-soft: #f6e3df;
+
+  --focus: #2f6fdb;
+
+  --font-display: 'Bricolage Grotesque', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-body: 'Figtree', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+
+  /* scala tipografica (rapporto ~1.25) */
+  --t-xs: 0.8125rem;
+  --t-sm: 0.9375rem;
+  --t-md: 1.0625rem;
+  --t-lg: 1.3125rem;
+  --t-xl: 1.6875rem;
+  --t-2xl: 2.125rem;
+  --t-hero: clamp(2.35rem, 7.4vw, 4.6rem);
+
+  --r-sm: 8px;
+  --r-md: 14px;
+  --r-lg: 22px;
+
+  --shadow-card: 0 1px 0 rgba(16, 42, 47, 0.04), 0 8px 24px -14px rgba(16, 42, 47, 0.28);
+  --shadow-lift: 0 2px 0 rgba(16, 42, 47, 0.05), 0 18px 40px -20px rgba(16, 42, 47, 0.38);
+
+  --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --dur: 160ms;
+
+  color-scheme: light;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root { --dur: 0ms; }
+  *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; scroll-behavior: auto !important; }
+}

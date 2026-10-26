@@ -1,0 +1,23 @@
+# Blueprint Render: sito statico con fallback SPA.
+services:
+  - type: web
+    name: travel-recovery
+    runtime: static
+    buildCommand: npm ci || npm install; npm run build
+    staticPublishPath: ./dist
+    envVars:
+      - key: VITE_SUPABASE_URL
+        sync: false
+      - key: VITE_SUPABASE_ANON_KEY
+        sync: false
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    headers:
+      - path: /*
+        name: X-Content-Type-Options
+        value: nosniff
+      - path: /admin*
+        name: X-Robots-Tag
+        value: noindex, nofollow
