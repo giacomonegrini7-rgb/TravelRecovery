@@ -3,7 +3,7 @@ import type { AdminCtx } from './AdminApp';
 import { ExportBar } from './StatsPage';
 import { adminApi } from '../lib/backend';
 import { errorText, type DatasetParticipation } from '../lib/backend/types';
-import { altLabel, catLabel, definitionsOf, PATH_LABEL } from '../lib/stats';
+import { altLabel, catLabel, definitionsOf, LANGUAGE_LABEL, langOf, PATH_LABEL } from '../lib/stats';
 import { dateTimeRome } from '../lib/format';
 import { download, participationJson } from '../lib/exports';
 import { summaryLines } from '../lib/report';
@@ -62,6 +62,7 @@ export function ParticipationsPage({ ctx }: { ctx: AdminCtx }) {
                   <span className="p-cats">{p.explorations.length ? [...new Set(p.explorations.map((e) => catLabel(e.category)))].join(', ') : 'Nessun esempio'}</span>
                   <span className="p-flags">
                     {p.events.email_subscribed && <span className="tag tag-mail">Iscrizione</span>}
+                    {langOf(p) === 'en' && <span className="tag">EN</span>}
                     {p.is_test && <span className="tag tag-test">Test</span>}
                   </span>
                 </a>
@@ -150,6 +151,7 @@ export function ReportPage({ ctx, id }: { ctx: AdminCtx; id: string }) {
         <dl className="report-meta">
           <div><dt>Stato</dt><dd>{p.status === 'completed' ? 'Completato' : 'Non completato'}</dd></div>
           <div><dt>Percorso</dt><dd>{p.path ? PATH_LABEL[p.path] : 'Non determinato'}</dd></div>
+          <div><dt>Lingua</dt><dd>{LANGUAGE_LABEL[langOf(p)]}</dd></div>
           <div><dt>Fase raggiunta</dt><dd>{p.current_step}</dd></div>
           <div><dt>Tipo</dt><dd>{p.is_test ? 'Test' : 'Ricerca'}</dd></div>
           <div><dt>Versioni</dt><dd>{p.questionnaire_version}, {p.demo_version}, {p.privacy_version}</dd></div>

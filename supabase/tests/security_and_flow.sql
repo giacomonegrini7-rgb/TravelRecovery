@@ -239,4 +239,25 @@ select tst.ok(not exists (select 1 from public.answers where participation_id = 
 select tst.ok((select count(*) from public.subscription_requests) = 2 and (select count(*) from public.contacts) = 1, 'cancellazione: il contatto collegato ad altre partecipazioni resta');
 select tst.ok(exists (select 1 from public.participations where id = :'p1'), 'cancellazione: partecipazioni indipendenti intatte');
 
+
+\echo '— Lingua inglese'
+insert into auth.users (id, email, email_confirmed_at, is_anonymous) values ('00000000-0000-0000-0000-0000000000a5', null, null, true);
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000a5', false);
+set role authenticated;
+select tst.err($$select public.start_participation(gen_random_uuid(), 'fr')$$, 'TR:bad_request', 'lingua non prevista respinta');
+select (public.start_participation(gen_random_uuid(), 'en') ->> 'id') as p5 \gset
+select tst.ok(public.get_participation(:'p5') ->> 'language' = 'en', 'lingua inglese registrata dal server');
+select public.save_step(:'p5', '{"Q1":{"kind":"multi","values":["flight"]},"Q2":{"kind":"single","value":"no"},"A0":{"kind":"single","value":"never_purchased"}}', 'demo_intro');
+select (public.demo_start(:'p5', gen_random_uuid(), 'hotel-01', 'cancel', current_date) ->> 'exploration_id') as e6 \gset
+select public.demo_action(:'p5', :'e6', 'open_detail', 'h-cancel-free');
+select public.submit_final(:'p5', :'e6', '{"F1a":{"kind":"single","value":"very"},"F1b":{"kind":"single","value":"very"},"F2":{"kind":"single","value":"very"},"F3":{"kind":"single","value":"trust"}}');
+select public.subscribe_email(:'p5', 'english@test.example', true, 'consent-v1-en');
+reset role;
+select tst.ok((select consent_text from public.subscription_requests where participation_id = :'p5') like 'I would like to receive%', 'consenso inglese registrato con il suo testo');
+select tst.ok((select count(*) from public.participations where language = 'it') >= 1, 'partecipazioni senza lingua indicata restano in italiano');
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000b1', false);
+set role authenticated;
+select tst.ok(exists (select 1 from jsonb_array_elements(public.admin_dataset(null, null, true, true) -> 'participations') x where x ->> 'language' = 'en'), 'la dashboard riceve la lingua');
+reset role;
+
 \echo 'TUTTI I TEST SQL SUPERATI'

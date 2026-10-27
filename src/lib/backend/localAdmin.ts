@@ -139,7 +139,7 @@ export function buildSampleDataset(now = new Date()): { ds: Dataset; contacts: C
     ps.push({
       id: `p-${i}`, code, started_at: iso(0), completed_at: completedAt,
       last_activity_at: completedAt ?? iso(depth * 10), questionnaire_version: QUESTIONNAIRE_V1.version, demo_version: DEMO_VERSION,
-      privacy_version: PROJECT.privacyVersion, path, current_step: step, status, is_test: isTest, email_screen: emailScreen,
+      privacy_version: PROJECT.privacyVersion, path, current_step: step, status, is_test: isTest, email_screen: emailScreen, language: i % 4 === 1 ? 'en' : 'it',
       f1_exploration_id: f1, answers: ans, explorations, events, subscription,
     });
   }

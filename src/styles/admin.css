@@ -192,4 +192,5 @@
 }
 
 .admin .btn { font-size: var(--t-sm); min-height: 42px; padding: 0 16px; }
-@media (min-width: 900px) { .filters-grid { grid-template-columns: repeat(5, minmax(0, 1fr)) minmax(0, 1.3fr); } }
+@media (min-width: 900px) { .filters-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+@media (min-width: 1280px) { .filters-grid { grid-template-columns: repeat(6, minmax(0, 1fr)) minmax(0, 1.3fr); } }

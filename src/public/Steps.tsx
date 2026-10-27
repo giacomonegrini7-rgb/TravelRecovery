@@ -4,13 +4,14 @@ import { getQuestion } from '../config/questionnaire';
 import { toggleMulti, validateAnswer, type AnswerValue, type Answers } from '../lib/flow';
 import type { ExplorationState } from '../lib/backend/types';
 import { Button, ChoiceList, TextAreaCounter } from '../ui/components';
-import { IconArrowLeft } from '../ui/icons';
-import { catLabel } from '../lib/stats';
+import { IconArrowLeft, IconArrowRight } from '../ui/icons';
+import { categoryLabel } from '../i18n/content';
+import { t } from '../i18n';
 import { F3_OTHER_MAX } from '../config/project';
 
 interface Common { busy: boolean; onBack?: () => void; error: ReactNode }
 
-export function StepFrame({ eyebrow, title, help, children, onBack, onNext, nextLabel = 'Continua', busy, error, wide }: {
+export function StepFrame({ eyebrow, title, help, children, onBack, onNext, nextLabel, busy, error, wide }: {
   eyebrow?: ReactNode; title: ReactNode; help?: ReactNode; children?: ReactNode; onBack?: () => void;
   onNext: () => void; nextLabel?: string; busy: boolean; error: ReactNode; wide?: boolean;
 }) {
@@ -25,10 +26,10 @@ export function StepFrame({ eyebrow, title, help, children, onBack, onNext, next
         <div className="step-nav">
           {onBack ? (
             <Button type="button" variant="ghost" onClick={onBack} disabled={busy} className="btn-back">
-              <IconArrowLeft size={18} /> Indietro
+              <IconArrowLeft size={18} /> {t('back')}
             </Button>
           ) : <span />}
-          <Button type="submit" busy={busy}>{nextLabel}</Button>
+          <Button type="submit" busy={busy}>{nextLabel ?? t('continue')}</Button>
         </div>
       </form>
     </section>
@@ -36,8 +37,8 @@ export function StepFrame({ eyebrow, title, help, children, onBack, onNext, next
 }
 
 function hintFor(q: Question): string | null {
-  if (q.type === 'single') return 'Una sola risposta';
-  if (q.type === 'multi') return q.max ? `Puoi scegliere fino a ${q.max} risposte` : 'Puoi scegliere più risposte';
+  if (q.type === 'single') return t('hintSingle');
+  if (q.type === 'multi') return q.max ? t('hintMultiMax', { max: q.max }) : t('hintMulti');
   return null;
 }
 
@@ -62,7 +63,7 @@ export function ClosedQuestion({ q, value, onChange, showHint = true, invalid, t
     <div className="question">
       {showHint && (
         <p className="choice-hint" id={hintId}>
-          {hintFor(q)}{q.max ? <span className="choice-count"> (selezionate: {vals.length} di {q.max})</span> : null}
+          {hintFor(q)}{q.max ? <span className="choice-count"> {t('selectedCount', { n: vals.length, max: q.max })}</span> : null}
         </p>
       )}
       {q.max && limitMsg && <p className="inline-msg inline-warn limit-top" role="alert">{limitMsg}</p>}
@@ -96,10 +97,10 @@ export function QuestionScreen({ q, answers, setAnswer, onNext, ...c }: Common &
   if (q.type === 'text') {
     const text = v?.kind === 'text' ? v.text : '';
     return (
-      <StepFrame title={q.title} onNext={onNext} {...c} help={<p className="optional-tag">Facoltativa: puoi continuare anche senza scrivere.</p>}>
+      <StepFrame title={q.title} onNext={onNext} {...c} help={<p className="optional-tag">{t('optional')}</p>}>
         <TextAreaCounter
-          label="La tua risposta" value={text} max={q.maxLength ?? 1200} help={q.help}
-          onChange={(t) => setAnswer(q.id, t ? { kind: 'text', text: t } : undefined)}
+          label={t('yourAnswer')} value={text} max={q.maxLength ?? 1200} help={q.help}
+          onChange={(x) => setAnswer(q.id, x ? { kind: 'text', text: x } : undefined)}
         />
       </StepFrame>
     );
@@ -120,7 +121,7 @@ export function QuestionScreen({ q, answers, setAnswer, onNext, ...c }: Common &
 
 export function ExperienceIntro({ text, onNext, ...c }: Common & { text: string; onNext: () => void }) {
   return (
-    <StepFrame eyebrow="La tua esperienza" title="Pensa a un episodio preciso" onNext={onNext} {...c}>
+    <StepFrame eyebrow={t('expEyebrow')} title={t('expTitle')} onNext={onNext} {...c}>
       <div className="callout"><p>{text}</p></div>
     </StepFrame>
   );
@@ -134,7 +135,7 @@ export function AlternativeIntro({ def, answers, setAnswer, onNext, ...c }: Comm
   const never = sel === 'never_purchased';
   return (
     <StepFrame
-      eyebrow="La tua esperienza" title="Pensa al tuo ultimo acquisto" {...c}
+      eyebrow={t('expEyebrow')} title={t('altTitle')} {...c}
       onNext={() => onNext({ kind: 'single', value: never ? 'never_purchased' : 'continue' })}
     >
       <div className="callout"><p>{def.texts.alternativeIntro}</p></div>
@@ -146,22 +147,23 @@ export function AlternativeIntro({ def, answers, setAnswer, onNext, ...c }: Comm
         <span className="choice-mark mark-box" aria-hidden="true">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><path d="m5 12.5 4.2 4.2L19 7" /></svg>
         </span>
-        <span>Non ho mai acquistato personalmente questi servizi</span>
+        <span>{t('neverPurchased')}</span>
       </label>
-      {never && <p className="inline-msg inline-info">Va bene: passerai direttamente alla demo.</p>}
+      {never && <p className="inline-msg inline-info">{t('neverNote')}</p>}
     </StepFrame>
   );
 }
 
 export function DemoIntro({ def, onNext, ...c }: Common & { def: QuestionnaireDefinition; onNext: () => void }) {
   return (
-    <StepFrame title={def.texts.demoTransition1} onNext={onNext} nextLabel="Prova la demo" {...c}>
+    <StepFrame title={def.texts.demoTransition1} onNext={onNext} nextLabel={t('tryDemo')} {...c}>
       <div className="demo-intro">
         <p>{def.texts.demoTransition2}</p>
         <div className="callout callout-demo">
-          <span className="demo-chip demo-chip-inline">Demo — dati di esempio</span>
+          <span className="demo-chip demo-chip-inline">{t('demoChip')}</span>
           <p>{def.texts.demoTransition3}</p>
         </div>
+        <p className="demo-after"><IconArrowRight size={18} /> {t('demoIntroAfter')}</p>
       </div>
     </StepFrame>
   );
@@ -176,12 +178,12 @@ export function F1Screen({ def, answers, setAnswer, onNext, reference, multipleE
   const qb = getQuestion(def, 'F1b');
   return (
     <StepFrame
-      eyebrow="Il tuo parere" title="Dopo aver provato la demo, quanto ti è chiaro…?" wide {...c}
+      eyebrow={t('feedbackEyebrow')} title={t('f1Title')} wide {...c}
       help={
         <>
           <p>{def.texts.feedbackIntro}</p>
           {multipleExamples && reference && (
-            <p className="callout callout-slim">Queste due domande si riferiscono all’ultimo esempio che hai esplorato: <strong>{catLabel(reference.category)}</strong>.</p>
+            <p className="callout callout-slim">{t('f1Reference')} <strong>{categoryLabel(reference.category)}</strong>.</p>
           )}
         </>
       }
@@ -215,7 +217,7 @@ export function F3Screen({ def, answers, setAnswer, onSubmit, ...c }: Common & {
   const otherText = answers.F3_other?.kind === 'text' ? answers.F3_other.text : '';
   return (
     <StepFrame
-      eyebrow="Il tuo parere" title={q.title} nextLabel="Invia le risposte" {...c}
+      eyebrow={t('feedbackEyebrow')} title={q.title} nextLabel={t('submit')} {...c}
       onNext={() => {
         const err = validateAnswer(q, answers.F3);
         setInvalid(err);
@@ -228,8 +230,8 @@ export function F3Screen({ def, answers, setAnswer, onSubmit, ...c }: Common & {
     >
       <ClosedQuestion q={q} value={answers.F3} invalid={invalid} onChange={(v) => { setInvalid(null); setAnswer('F3', v); }} />
       {other && (
-        <TextAreaCounter label="Vuoi specificare? (facoltativo)" value={otherText} max={F3_OTHER_MAX} rows={3}
-          onChange={(t) => setAnswer('F3_other', t ? { kind: 'text', text: t } : undefined)} />
+        <TextAreaCounter label={t('f3OtherLabel')} value={otherText} max={F3_OTHER_MAX} rows={3}
+          onChange={(x) => setAnswer('F3_other', x ? { kind: 'text', text: x } : undefined)} />
       )}
     </StepFrame>
   );

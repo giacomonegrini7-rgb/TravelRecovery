@@ -1,8 +1,8 @@
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useState, type ReactNode } from 'react';
 import { adminApi, isConnected } from '../lib/backend';
 import { BackendError, errorText, type Dataset, type Role } from '../lib/backend/types';
 import { addDaysISO, dateRome, dateTimeRome, romeDayStartISO } from '../lib/format';
-import { applyClientFilters, catLabel, PATH_LABEL, type ClientFilters } from '../lib/stats';
+import { applyClientFilters, catLabel, LANGUAGE_LABEL, PATH_LABEL, type ClientFilters } from '../lib/stats';
 import { href, navigate } from '../lib/router';
 import { Alert, Brand, Button, SkipLink, Spinner } from '../ui/components';
 import { DEMO_CASES } from '../config/demoCases';
@@ -13,6 +13,7 @@ import { ContactsPage } from './ContactsPage';
 import { SettingsPage } from './SettingsPage';
 import { LoginScreen, SetPasswordScreen } from './Login';
 import { ConfirmProvider } from '../ui/confirm';
+import { setLang } from '../i18n';
 
 export interface AdminFilters {
   from: string; // YYYY-MM-DD (Europe/Rome), incluso
@@ -21,9 +22,10 @@ export interface AdminFilters {
   path: ClientFilters['path'];
   category: string;
   source: 'research' | 'test' | 'all';
+  language: 'all' | 'it' | 'en';
 }
 
-export const DEFAULT_FILTERS: AdminFilters = { from: '', to: '', version: '', path: 'all', category: 'all', source: 'research' };
+export const DEFAULT_FILTERS: AdminFilters = { from: '', to: '', version: '', path: 'all', category: 'all', source: 'research', language: 'all' };
 
 export function filterLines(f: AdminFilters): string[] {
   const l: string[] = [];
@@ -32,6 +34,7 @@ export function filterLines(f: AdminFilters): string[] {
   if (f.version) l.push(`Versione questionario: ${f.version}`);
   if (f.path !== 'all') l.push(`Percorso: ${PATH_LABEL[f.path]}`);
   if (f.category !== 'all') l.push(`Categoria demo esplorata: ${catLabel(f.category)}`);
+  if (f.language !== 'all') l.push(`Lingua: ${LANGUAGE_LABEL[f.language]}`);
   return l;
 }
 
@@ -59,6 +62,8 @@ const NAV = [
 ];
 
 export function AdminApp({ path }: { path: string }) {
+  // L'area creator è sempre in italiano (senza modificare la lingua scelta per il questionario).
+  useLayoutEffect(() => { setLang('it', { persist: false }); }, []);
   const api = adminApi();
   const [auth, setAuth] = useState<AuthState>({ s: 'checking' });
 
@@ -144,7 +149,7 @@ function AdminShell({ path, email, role, onSignOut }: { path: string; email: str
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [serverKey]);
 
-  const rows = useMemo(() => (ds ? applyClientFilters(ds.participations, { path: filters.path, category: filters.category }) : []), [ds, filters.path, filters.category]);
+  const rows = useMemo(() => (ds ? applyClientFilters(ds.participations, { path: filters.path, category: filters.category, language: filters.language }) : []), [ds, filters.path, filters.category, filters.language]);
   const reload = () => setTick((t) => t + 1);
 
   const section = path.startsWith('/admin/partecipazioni') ? 'p' : path.startsWith('/admin/contatti') ? 'c' : path.startsWith('/admin/impostazioni') ? 's' : 'stats';
@@ -224,6 +229,13 @@ function FiltersBar({ filters, setFilters, versions, loading, updatedAt, onRefre
           <select value={filters.category} onChange={(e) => set('category', e.target.value)}>
             <option value="all">Tutte</option>
             {DEMO_CASES.map((c) => <option key={c.category} value={c.category}>{c.categoryLabel}</option>)}
+          </select>
+        </label>
+        <label>Lingua
+          <select value={filters.language} onChange={(e) => set('language', e.target.value as AdminFilters['language'])}>
+            <option value="all">Tutte</option>
+            <option value="it">{LANGUAGE_LABEL.it}</option>
+            <option value="en">{LANGUAGE_LABEL.en}</option>
           </select>
         </label>
         <label>Dati

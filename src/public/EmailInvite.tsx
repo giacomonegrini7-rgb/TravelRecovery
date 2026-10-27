@@ -4,6 +4,8 @@ import { publicBackend } from '../lib/backend';
 import { errorText, type PublicConfig } from '../lib/backend/types';
 import { Alert, Button } from '../ui/components';
 import { href } from '../lib/router';
+import { getLang, t } from '../i18n';
+import { consentFor } from '../i18n/content';
 
 const EMAIL_RE = /^[^\s@<>(),;:"[\]]+@[^\s@<>(),;:"[\]]+\.[^\s@<>(),;:"[\]]{2,}$/;
 
@@ -19,6 +21,7 @@ export function EmailInvite({ def, config, participationId, alreadyShown, onDone
   const [fail, setFail] = useState<string | null>(null);
   const shownRef = useRef(alreadyShown);
   const id = useId();
+  const consent_ = consentFor(getLang(), config.consentVersion, config.consentText);
 
   useEffect(() => {
     if (shownRef.current) return;
@@ -29,9 +32,9 @@ export function EmailInvite({ def, config, participationId, alreadyShown, onDone
   const subscribe = async () => {
     const e = email.trim();
     const errs: typeof errors = {};
-    if (!e) errs.email = 'Inserisci un indirizzo email per iscriverti.';
-    else if (!EMAIL_RE.test(e.toLowerCase()) || e.length > 254) errs.email = 'Controlla l’indirizzo: sembra incompleto o non valido (esempio: nome@dominio.it).';
-    if (!consent) errs.consent = 'Per iscriverti seleziona la casella del consenso.';
+    if (!e) errs.email = t('emailEmpty');
+    else if (!EMAIL_RE.test(e.toLowerCase()) || e.length > 254) errs.email = t('emailInvalid');
+    if (!consent) errs.consent = t('consentMissing');
     setErrors(errs);
     if (errs.email || errs.consent) {
       document.getElementById(errs.email ? `${id}-email` : `${id}-consent`)?.focus();
@@ -39,7 +42,7 @@ export function EmailInvite({ def, config, participationId, alreadyShown, onDone
     }
     setBusy('sub'); setFail(null);
     try {
-      await backend.subscribe(participationId, e, true, config.consentVersion);
+      await backend.subscribe(participationId, e, true, consent_.version);
       onDone('subscribed');
     } catch (err) {
       setFail(errorText(err));
@@ -58,12 +61,12 @@ export function EmailInvite({ def, config, participationId, alreadyShown, onDone
 
   return (
     <section className="step email-step">
-      <div className="saved-badge" role="status"><span aria-hidden="true">✓</span> Le tue risposte sono state inviate.</div>
+      <div className="saved-badge" role="status"><span aria-hidden="true">✓</span> {t('saved')}</div>
       <h1 className="h-screen" tabIndex={-1} data-autofocus>{def.texts.emailTitle}</h1>
       <p className="lead">{def.texts.emailBody}</p>
       <form className="email-form" noValidate onSubmit={(e) => { e.preventDefault(); void subscribe(); }}>
         <div className="field">
-          <label className="field-label" htmlFor={`${id}-email`}>Il tuo indirizzo email</label>
+          <label className="field-label" htmlFor={`${id}-email`}>{t('emailLabel')}</label>
           <input
             id={`${id}-email`} type="email" inputMode="email" autoComplete="email" value={email} maxLength={254}
             aria-invalid={Boolean(errors.email)} aria-describedby={errors.email ? `${id}-email-err` : undefined}
@@ -80,14 +83,14 @@ export function EmailInvite({ def, config, participationId, alreadyShown, onDone
           <span className="choice-mark mark-box" aria-hidden="true">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><path d="m5 12.5 4.2 4.2L19 7" /></svg>
           </span>
-          <span>{config.consentText}</span>
+          <span>{consent_.text}</span>
         </label>
         {errors.consent && <p className="inline-msg inline-error" id={`${id}-consent-err`}>{errors.consent}</p>}
-        <p className="small muted">{def.texts.emailLinkNote} <a href={href('/privacy')} target="_blank" rel="noopener">Leggi l’informativa</a>.</p>
-        {fail && <Alert>{fail} Puoi riprovare oppure terminare senza iscriverti.</Alert>}
+        <p className="small muted">{def.texts.emailLinkNote} <a href={href('/privacy')} target="_blank" rel="noopener">{t('readPrivacy')}</a>.</p>
+        {fail && <Alert>{t('subscribeFail', { msg: fail })}</Alert>}
         <div className="email-actions">
-          <Button type="submit" busy={busy === 'sub'} disabled={busy === 'dec'}>Avvisami al lancio</Button>
-          <Button type="button" variant="ghost" onClick={() => void decline()} busy={busy === 'dec'} disabled={busy === 'sub'}>No grazie, termina</Button>
+          <Button type="submit" busy={busy === 'sub'} disabled={busy === 'dec'}>{t('subscribe')}</Button>
+          <Button type="button" variant="ghost" onClick={() => void decline()} busy={busy === 'dec'} disabled={busy === 'sub'}>{t('decline')}</Button>
         </div>
       </form>
     </section>
@@ -104,10 +107,10 @@ export function Thanks({ def, outcome, onRestart }: { def: QuestionnaireDefiniti
           <circle cx="112" cy="30" r="7" fill="var(--signal)" />
         </svg>
       </div>
-      <h1 className="h-screen" tabIndex={-1} data-autofocus>{outcome === 'subscribed' ? 'Richiesta registrata' : 'Grazie per il tuo contributo'}</h1>
+      <h1 className="h-screen" tabIndex={-1} data-autofocus>{outcome === 'subscribed' ? t('thanksSubscribed') : t('thanksDefault')}</h1>
       <p className="lead">{outcome === 'subscribed' ? def.texts.emailSuccess : def.texts.thanksNoEmail}</p>
-      <p className="small muted">Puoi chiudere questa pagina.</p>
-      <button className="link-quiet" onClick={onRestart}>Compila un nuovo questionario da capo</button>
+      <p className="small muted">{t('canClose')}</p>
+      <button className="link-quiet" onClick={onRestart}>{t('restart')}</button>
     </section>
   );
 }

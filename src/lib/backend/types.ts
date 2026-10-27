@@ -1,4 +1,7 @@
+import { ERRORS } from '../../i18n/ui';
+import { getLang } from '../../i18n';
 import type { AnswerValue, Answers, Path, StepId } from '../flow';
+import type { Lang } from '../../i18n';
 
 export type Mode = 'local' | 'test' | 'research';
 
@@ -45,6 +48,7 @@ export interface ParticipationState {
   is_test: boolean;
   email_screen: EmailScreen;
   f1_exploration_id: string | null;
+  language?: Lang;
   answers: Answers;
   explorations: ExplorationState[];
 }
@@ -67,7 +71,7 @@ export class BackendError extends Error {
 export interface PublicBackend {
   kind: 'local' | 'supabase';
   getConfig(): Promise<PublicConfig>;
-  start(clientKey: string): Promise<ParticipationState>;
+  start(clientKey: string, language: Lang): Promise<ParticipationState>;
   load(id: string): Promise<ParticipationState>;
   saveStep(id: string, answers: Record<string, AnswerValue | null>, nextStep: StepId): Promise<{ path: Path | null }>;
   demoStart(id: string, clientKey: string, caseId: string, need: string, referenceDate: string): Promise<string>;
@@ -140,6 +144,8 @@ export interface DatasetParticipation {
   is_test: boolean;
   email_screen: EmailScreen;
   f1_exploration_id: string | null;
+  /** Lingua in cui è stata compilata (assente nei dati precedenti all'introduzione dell'inglese = italiano). */
+  language?: Lang;
   answers: DatasetAnswer[];
   explorations: DatasetExploration[];
   events: Partial<Record<EventType, string>>;
@@ -229,26 +235,12 @@ export interface AdminApi {
   removeAccess(target: { userId?: string; email?: string }): Promise<void>;
 }
 
-export const ERROR_TEXT: Record<string, string> = {
-  network: 'Connessione non riuscita. Controlla la rete e riprova: la risposta non è ancora stata salvata.',
-  timeout: 'Il server non ha risposto in tempo. Riprova: la risposta non è ancora stata salvata.',
-  server: 'Il servizio non è disponibile in questo momento. Riprova tra poco.',
-  rate_limited: 'Troppe richieste in poco tempo. Attendi qualche minuto e riprova.',
-  auth: 'La sessione non è più valida. Ricarica la pagina per continuare.',
-  auth_required: 'La sessione non è più valida. Ricarica la pagina per continuare.',
-  not_found: 'Questa compilazione non è disponibile in questo browser.',
-  forbidden: 'Non hai l’autorizzazione per questa operazione.',
-  invalid_email: 'Controlla l’indirizzo email: sembra incompleto o non valido.',
-  consent_required: 'Per iscriverti seleziona la casella del consenso.',
-  incomplete: 'Mancano alcune risposte obbligatorie. Torna indietro per completarle.',
-  demo_not_explored: 'Apri il dettaglio di almeno un’alternativa nella demo prima di proseguire.',
-  already_completed: 'Questa compilazione è già stata inviata.',
-  privacy_incomplete: 'Completa i campi essenziali dell’informativa prima di attivare la ricerca.',
-  cannot_remove_self: 'Non puoi rimuovere il tuo stesso accesso di owner.',
-  not_configured: 'Il backend non è ancora configurato.',
-};
+
+/** Messaggi d'errore (italiano), mantenuto per compatibilità con la dashboard. */
+export const ERROR_TEXT: Record<string, string> = ERRORS.it;
 
 export function errorText(e: unknown): string {
-  if (e instanceof BackendError) return ERROR_TEXT[e.code] ?? e.message;
-  return 'Si è verificato un errore imprevisto. Riprova.';
+  const dict = ERRORS[getLang()];
+  if (e instanceof BackendError) return dict[e.code] ?? (ERRORS.it[e.code] ? dict.unexpected : e.message);
+  return dict.unexpected;
 }

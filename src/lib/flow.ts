@@ -2,6 +2,7 @@
 // Le stesse regole sono applicate lato server nelle funzioni SQL (validate_answer / required set).
 
 import type { Question, QuestionnaireDefinition } from '../config/questionnaire';
+import { t } from '../i18n';
 
 export type Path = 'experience' | 'alternative' | 'never_purchased';
 
@@ -126,7 +127,7 @@ export function toggleMulti(q: Question, current: string[], optionId: string): T
   const exclusiveIds = new Set((q.options ?? []).filter((o) => o.exclusive).map((o) => o.id));
   const kept = current.filter((v) => !exclusiveIds.has(v));
   if (q.max && kept.length >= q.max) {
-    return { values: current, error: `Puoi scegliere al massimo ${q.max} risposte. Deseleziona un’opzione per sceglierne un’altra.` };
+    return { values: current, error: t('errMaxToggle', { max: q.max }) };
   }
   return { values: [...kept, optionId], error: null };
 }
@@ -135,22 +136,22 @@ export function toggleMulti(q: Question, current: string[], optionId: string): T
 export function validateAnswer(q: Question, v: AnswerValue | undefined): string | null {
   if (q.type === 'text') {
     if (!v) return null;
-    if (v.kind !== 'text') return 'Formato non valido.';
-    if (q.maxLength && v.text.length > q.maxLength) return `Massimo ${q.maxLength} caratteri.`;
+    if (v.kind !== 'text') return t('errFormat');
+    if (q.maxLength && v.text.length > q.maxLength) return t('errMaxChars', { max: q.maxLength });
     return null;
   }
-  if (!v) return q.required ? 'Seleziona una risposta per continuare.' : null;
+  if (!v) return q.required ? t('errSelect') : null;
   const ids = new Set((q.options ?? []).map((o) => o.id));
   if (q.type === 'single') {
-    if (v.kind !== 'single' || !ids.has(v.value)) return 'Seleziona una risposta per continuare.';
+    if (v.kind !== 'single' || !ids.has(v.value)) return t('errSelect');
     return null;
   }
-  if (v.kind !== 'multi' || v.values.length === 0) return 'Seleziona almeno una risposta per continuare.';
-  if (new Set(v.values).size !== v.values.length) return 'Risposta duplicata.';
-  if (v.values.some((x) => !ids.has(x))) return 'Opzione non valida.';
+  if (v.kind !== 'multi' || v.values.length === 0) return t('errSelectOne');
+  if (new Set(v.values).size !== v.values.length) return t('errDuplicate');
+  if (v.values.some((x) => !ids.has(x))) return t('errInvalid');
   const excl = (q.options ?? []).filter((o) => o.exclusive).map((o) => o.id);
-  if (v.values.some((x) => excl.includes(x)) && v.values.length > 1) return 'Questa opzione non può essere combinata con altre.';
-  if (q.max && v.values.length > q.max) return `Puoi scegliere al massimo ${q.max} risposte.`;
+  if (v.values.some((x) => excl.includes(x)) && v.values.length > 1) return t('errExclusive');
+  if (q.max && v.values.length > q.max) return t('errMax', { max: q.max });
   return null;
 }
 

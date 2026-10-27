@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { publicBackend } from '../lib/backend';
 import { BackendError, errorText, type ExplorationState, type ParticipationState, type PublicConfig } from '../lib/backend/types';
-import { QUESTIONNAIRES, getQuestion } from '../config/questionnaire';
+import { getQuestion } from '../config/questionnaire';
 import { PROJECT } from '../config/project';
 import {
   missingRequired, nextStep, prevStep, progressFor, pruneInapplicable, questionStepIds, stepsFor,
@@ -13,6 +13,8 @@ import { Intro } from './Intro';
 import { QuestionScreen, ExperienceIntro, AlternativeIntro, F1Screen, F3Screen, DemoIntro } from './Steps';
 import { Demo } from './Demo';
 import { EmailInvite, Thanks } from './EmailInvite';
+import { getLang, setLang, t, useLang } from '../i18n';
+import { questionnaireFor } from '../i18n/content';
 
 const LS_KEY = 'tr.public.v1';
 interface Stored { pid?: string; pendingKey?: string }
@@ -35,7 +37,8 @@ type ErrState = { msg: string; retry?: () => void } | null;
 
 export function PublicApp() {
   const backend = publicBackend();
-  const def = QUESTIONNAIRES[PROJECT.questionnaireVersion];
+  const lang = useLang();
+  const def = questionnaireFor(PROJECT.questionnaireVersion, lang);
   const [config, setConfig] = useState<PublicConfig | null>(null);
   const [boot, setBoot] = useState<'loading' | 'ready' | 'error'>('loading');
   const [bootError, setBootError] = useState('');
@@ -48,6 +51,7 @@ export function PublicApp() {
   const mainRef = useRef<HTMLElement>(null);
 
   const resumeFrom = useCallback((state: ParticipationState) => {
+    if (state.language === 'it' || state.language === 'en') setLang(state.language);
     setP(state);
     setAnswers(state.answers ?? {});
     if (state.status === 'completed') {
@@ -107,7 +111,7 @@ export function PublicApp() {
     const stored = readStored();
     const key = stored.pendingKey ?? uuid();
     writeStored({ ...stored, pendingKey: key }); // stessa chiave in caso di retry: nessun duplicato
-    const state = await backend.start(key);
+    const state = await backend.start(key, getLang());
     writeStored({ pid: state.id });
     resumeFrom(state);
   });
@@ -163,15 +167,15 @@ export function PublicApp() {
   });
 
   if (boot === 'loading') {
-    return <Shell config={config} step="intro"><main className="page page-center"><Spinner label="Caricamento in corso…" /></main></Shell>;
+    return <Shell config={config} step="intro"><main className="page page-center"><Spinner label={t('loading')} /></main></Shell>;
   }
   if (boot === 'error' || !config) {
     return (
-      <Shell config={config} step="intro">
+      <Shell config={config} step="intro" showLang>
         <main className="page page-narrow">
-          <h1 className="h-screen" tabIndex={-1} data-autofocus>Non riusciamo a collegarci</h1>
-          <Alert action={<Button variant="secondary" onClick={() => void doBoot()}>Riprova</Button>}>{bootError}</Alert>
-          <p className="muted">Nessuna risposta è stata salvata in questo tentativo.</p>
+          <h1 className="h-screen" tabIndex={-1} data-autofocus>{t('bootTitle')}</h1>
+          <Alert action={<Button variant="secondary" onClick={() => void doBoot()}>{t('retry')}</Button>}>{bootError}</Alert>
+          <p className="muted">{t('bootNote')}</p>
         </main>
       </Shell>
     );
@@ -183,7 +187,7 @@ export function PublicApp() {
 
   const progress = progressFor(step, answers);
   const errorBox = error && (
-    <Alert action={error.retry && <Button variant="secondary" onClick={error.retry} disabled={busy}>Riprova</Button>}>{error.msg}</Alert>
+    <Alert action={error.retry && <Button variant="secondary" onClick={error.retry} disabled={busy}>{t('retry')}</Button>}>{error.msg}</Alert>
   );
   const common = { busy, onBack: prevStep(step, answers) ? back : undefined, error: errorBox };
 

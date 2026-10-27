@@ -63,6 +63,14 @@ L’owner autorizza un’email da `/admin/impostazioni`. La persona apre `/admin
 
 Le variabili `VITE_*` vengono incorporate durante la build: se le cambi, rifai il deploy.
 
+## Lingue (italiano e inglese)
+
+- Nella prima schermata il partecipante sceglie **Italiano / English**; di default il sito si apre in italiano se il browser è in italiano, altrimenti in inglese. La scelta è ricordata nel browser.
+- Testi dell'interfaccia: `src/i18n/ui.ts`. Domande in inglese: `src/i18n/questionnaire.en.ts`. Casi della demo in inglese: `src/i18n/demoCases.en.ts`. Per correggere una traduzione si modifica solo il testo, mai gli ID.
+- Gli ID di domande e opzioni sono identici nelle due lingue: le risposte confluiscono negli stessi grafici. La lingua di ogni partecipazione è salvata (`participations.language`) e filtrabile in dashboard; è anche una colonna del CSV.
+- Il consenso inglese è registrato come versione `consent-v1-en`, con il suo testo.
+- La dashboard dei creator resta in italiano.
+
 ## Dashboard
 
 `/admin` (statistiche) · `/admin/partecipazioni` (elenco e report, stampa/PDF e JSON) · `/admin/contatti` (revoca, eliminazione, CSV destinatari attivi) · `/admin/impostazioni` (informativa, modalità, accessi, conservazione).

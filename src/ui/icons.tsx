@@ -30,6 +30,7 @@ export const IconQuestion = (p: P) => (
 );
 export const IconCross = (p: P) => <svg {...base(p)}><circle cx="12" cy="12" r="9" /><path d="m9 9 6 6M15 9l-6 6" /></svg>;
 export const IconArrowLeft = (p: P) => <svg {...base(p)}><path d="M19 12H5M11 6l-6 6 6 6" /></svg>;
+export const IconArrowRight = (p: P) => <svg {...base(p)}><path d="M5 12h14M13 6l6 6-6 6" /></svg>;
 export const IconChevron = (p: P) => <svg {...base(p)}><path d="m8 10 4 4 4-4" /></svg>;
 export const IconClock = (p: P) => <svg {...base(p)}><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg>;
 export const IconDoc = (p: P) => (

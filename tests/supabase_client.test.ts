@@ -37,14 +37,14 @@ test('start: sessione anonima, poi RPC con token e chiave di idempotenza', async
     return { status: 404 };
   });
   const b = new SupabasePublicBackend('https://x.supabase.co/', 'anon', fn);
-  const st = await b.start('key-1');
+  const st = await b.start('key-1', 'en');
   assert.equal(st.id, 'p1');
   const rpc = calls.find((c) => c.url.includes('start_participation'))!;
   assert.equal((rpc.init.headers as Record<string, string>).Authorization, 'Bearer tok1');
   assert.equal((rpc.init.headers as Record<string, string>).apikey, 'anon');
-  assert.deepEqual(JSON.parse(rpc.init.body as string), { p_client_key: 'key-1' });
+  assert.deepEqual(JSON.parse(rpc.init.body as string), { p_client_key: 'key-1', p_language: 'en' });
   // seconda chiamata: riusa la sessione, non crea un nuovo utente anonimo
-  await b.start('key-1');
+  await b.start('key-1', 'en');
   assert.equal(calls.filter((c) => c.url.endsWith('/signup')).length, 1);
 });
 
@@ -52,7 +52,7 @@ test('errori applicativi TR: mappati con codice', async () => {
   const { fn } = fakeFetch((url) => url.endsWith('/signup') ? { status: 200, body: session }
     : { status: 400, body: { code: 'P0001', message: 'TR:invalid_answer', details: 'Q8:too_many' } });
   const b = new SupabasePublicBackend('https://x.supabase.co', 'anon', fn);
-  await b.start('k').catch(() => undefined);
+  await b.start('k', 'it').catch(() => undefined);
   await assert.rejects(b.saveStep('p1', {}, 'Q2'), (e: unknown) => e instanceof BackendError && e.code === 'invalid_answer' && e.detail === 'Q8:too_many');
 });
 

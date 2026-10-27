@@ -17,6 +17,7 @@ export function summaryLines(ds: Dataset, p: DatasetParticipation): string[] {
   lines.push(p.status === 'completed' ? 'Questionario completato.' : `Compilazione non completata; ultima fase registrata: ${p.current_step}.`);
   if (p.is_test) lines.push('Partecipazione di test (esclusa dalle statistiche di ricerca per impostazione predefinita).');
   lines.push(p.path ? `Percorso: ${PATH_LABEL[p.path]}.` : 'Percorso non ancora determinato.');
+  if (p.language === 'en') lines.push('Questionario compilato in inglese.');
   const q2 = lbl('Q2', single('Q2'));
   if (q2) lines.push(`Q2: «${q2}».`);
   if (p.path === 'experience') {

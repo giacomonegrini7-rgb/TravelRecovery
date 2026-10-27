@@ -6,6 +6,7 @@ import { QUESTIONNAIRES, getQuestion } from '../../config/questionnaire';
 import { DEMO_CASES } from '../../config/demoCases';
 import { PROJECT, CONSENT_TEXT } from '../../config/project';
 import { isApplicable, missingRequired, pathOf, pruneInapplicable, validateAnswer, type AnswerValue, type Answers, type StepId } from '../flow';
+import type { Lang } from '../../i18n';
 import { BackendError, type DemoAction, type ParticipationState, type PublicBackend, type PublicConfig } from './types';
 
 const KEY = 'tr.local.preview.v1';
@@ -53,13 +54,13 @@ export class LocalPublicBackend implements PublicBackend {
     };
   }
 
-  async start(clientKey: string) {
+  async start(clientKey: string, language: Lang) {
     const existing = Object.values(this.store.participations).find((p) => p.client_key === clientKey);
     if (existing) return structuredClone(existing);
     const id = uuid();
     const p: ParticipationState & { client_key: string } = {
       id, client_key: clientKey, code: 'ANTEPRIMA', status: 'in_progress', path: null, current_step: 'Q1',
-      is_test: true, email_screen: 'not_shown', f1_exploration_id: null, answers: {}, explorations: [],
+      is_test: true, email_screen: 'not_shown', f1_exploration_id: null, language, answers: {}, explorations: [],
     };
     this.store.participations[id] = p;
     this.persist();

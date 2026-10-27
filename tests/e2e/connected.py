@@ -38,7 +38,7 @@ def full_never_path(page, email: str | None):
     page.get_by_role("button", name="Mostra le alternative").click()
     page.locator(".alt-card").first.get_by_role("button", name=re.compile("Dettagli")).click()
     page.wait_for_timeout(400)
-    page.get_by_role("button", name="Passa alle domande finali").click()
+    page.locator(".demo-footer").get_by_role("button", name=re.compile("Continua: ultime 4 domande")).click()
     b = page.locator(".f1-block")
     b.nth(0).locator("label.choice", has_text="Poco chiaro").click()
     b.nth(1).locator("label.choice", has_text="Abbastanza chiaro").click()
@@ -61,7 +61,7 @@ with sync_playwright() as pw:
     browser = pw.chromium.launch()
 
     # ——— Visitatore 1 ———
-    ctx = browser.new_context(viewport={"width": 390, "height": 844})
+    ctx = browser.new_context(viewport={"width": 390, "height": 844}, locale="it-IT")
     page = ctx.new_page()
     page.goto(BASE + "/")
     expect(page.get_by_text("Modalità test: le risposte sono salvate come prova")).to_be_visible()
@@ -124,7 +124,7 @@ with sync_playwright() as pw:
     page.locator(".alt-card").nth(1).get_by_role("button", name="Scegli questa").click()
     page.get_by_role("button", name=re.compile("Vai alla procedura del fornitore")).first.click()
     page.get_by_role("button", name="Torna alle alternative").click()
-    page.get_by_role("button", name="Passa alle domande finali").click()
+    page.locator(".demo-footer").get_by_role("button", name=re.compile("Continua: ultime 4 domande")).click()
     b = page.locator(".f1-block")
     b.nth(0).locator("label.choice", has_text="Del tutto chiaro").click()
     b.nth(1).locator("label.choice", has_text="Molto chiaro").click()
@@ -153,7 +153,7 @@ with sync_playwright() as pw:
     ctx.close()
 
     # ——— Visitatore 2: indipendente, stessa email ———
-    ctx = browser.new_context(viewport={"width": 1440, "height": 900})
+    ctx = browser.new_context(viewport={"width": 1440, "height": 900}, locale="it-IT")
     page = ctx.new_page()
     page.goto(BASE + "/")
     page.get_by_role("button", name="Inizia").click()
@@ -169,7 +169,7 @@ with sync_playwright() as pw:
     ctx.close()
 
     # ——— Visitatore 3: senza email ———
-    ctx = browser.new_context(viewport={"width": 768, "height": 1024})
+    ctx = browser.new_context(viewport={"width": 768, "height": 1024}, locale="it-IT")
     page = ctx.new_page()
     page.goto(BASE + "/")
     page.get_by_role("button", name="Inizia").click()
@@ -178,8 +178,9 @@ with sync_playwright() as pw:
     ok("completamento senza email non bloccato")
     ctx.close()
 
+
     # ——— Creator ———
-    ctx = browser.new_context(viewport={"width": 1440, "height": 900}, accept_downloads=True)
+    ctx = browser.new_context(viewport={"width": 1440, "height": 900}, accept_downloads=True, locale="it-IT")
     page = ctx.new_page()
     page.on("pageerror", lambda e: print("PAGEERROR", e))
     page.on("console", lambda m: print("CONSOLE", m.text) if m.type == "error" else None)
@@ -192,7 +193,7 @@ with sync_playwright() as pw:
     page.get_by_role("button", name="Accedi").click()
     expect(page.get_by_role("heading", name="Ancora nessuna partecipazione")).to_be_visible()
     ok("dashboard: test esclusi per impostazione predefinita, nessun dato simulato")
-    page.locator(".filters select").nth(3).select_option("test")
+    page.get_by_label("Dati").select_option("test")
     expect(page.get_by_role("heading", name="Statistiche")).to_be_visible()
     kpis = page.locator(".kpi")
     expect(kpis.nth(0)).to_contain_text("3")
@@ -223,5 +224,21 @@ with sync_playwright() as pw:
     expect(page.get_by_role("heading", name="Accedi all’area creator")).to_be_visible()
     ok("logout e accesso diretto a /admin/partecipazioni respinto")
     ctx.close()
+    # ——— Visitatore 4: telefono in inglese ———
+    ctx = browser.new_context(viewport={"width": 390, "height": 844}, locale="en-GB")
+    page = ctx.new_page()
+    page.goto(BASE + "/")
+    expect(page.get_by_role("heading", name=re.compile("When your plans change"))).to_be_visible()
+    expect(page.get_by_text("Test mode: answers are saved")).to_be_visible()
+    page.get_by_role("button", name="Start").click()
+    expect(page.get_by_role("heading", name=re.compile("In the last 12 months"))).to_be_visible()
+    page.locator("label.choice", has_text="Flights").click()
+    page.get_by_role("button", name="Continue", exact=True).click()
+    expect(page.get_by_role("heading", name=re.compile("Have you ever had to change"))).to_be_visible()
+    page.reload()
+    expect(page.get_by_role("heading", name=re.compile("Have you ever had to change"))).to_be_visible()
+    ok("visitatore in inglese: lingua del telefono rilevata, salvataggio e ripresa in inglese")
+    ctx.close()
+
     browser.close()
 print("PERCORSO COLLEGATO SUPERATO")

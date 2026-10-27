@@ -1,7 +1,9 @@
+import { locale } from '../i18n';
+
 const TZ = 'Europe/Rome';
 
 export function eur(n: number): string {
-  return n.toLocaleString('it-IT', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2 });
+  return n.toLocaleString(locale(), { style: 'currency', currency: 'EUR', minimumFractionDigits: 2 });
 }
 
 /** Data/ora per l'area amministrativa, sempre in Europe/Rome. */
@@ -17,15 +19,15 @@ export function dateRome(iso: string | null | undefined): string {
 
 /** Data lunga per la demo (es. "giovedì 19 novembre"). */
 export function longDate(d: Date): string {
-  return new Intl.DateTimeFormat('it-IT', { weekday: 'long', day: 'numeric', month: 'long' }).format(d);
+  return new Intl.DateTimeFormat(locale(), { weekday: 'long', day: 'numeric', month: 'long' }).format(d);
 }
 
 export function shortDate(d: Date): string {
-  return new Intl.DateTimeFormat('it-IT', { day: 'numeric', month: 'short' }).format(d);
+  return new Intl.DateTimeFormat(locale(), { day: 'numeric', month: 'short' }).format(d);
 }
 
 export function timeOf(d: Date): string {
-  return new Intl.DateTimeFormat('it-IT', { hour: '2-digit', minute: '2-digit' }).format(d);
+  return new Intl.DateTimeFormat(locale(), { hour: '2-digit', minute: '2-digit' }).format(d);
 }
 
 /** Data odierna (YYYY-MM-DD) secondo il fuso di Roma: riferimento congelato della demo. */

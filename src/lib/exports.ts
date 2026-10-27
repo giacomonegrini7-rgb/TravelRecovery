@@ -4,7 +4,7 @@
 
 import type { ContactRow, Dataset, DatasetParticipation } from './backend/types';
 import { QUESTIONNAIRES, type QuestionnaireDefinition } from '../config/questionnaire';
-import { altLabel, catLabel, computeFunnel, computeKpis, definitionsOf, distribution, emailStates, fmtPct, highUtility, pathComparison, PATH_LABEL, type AnswerScope, type ClientFilters } from './stats';
+import { altLabel, catLabel, LANGUAGE_LABEL, langOf, computeFunnel, computeKpis, definitionsOf, distribution, emailStates, fmtPct, highUtility, pathComparison, PATH_LABEL, type AnswerScope, type ClientFilters } from './stats';
 import { dateTimeRome } from './format';
 import { NEED_LABEL, type NeedId } from '../config/demoCases';
 
@@ -57,7 +57,7 @@ export function participationsCsv(ds: Dataset, ps: DatasetParticipation[], inclu
   const latest = defs[ps[0]?.questionnaire_version ?? Object.keys(QUESTIONNAIRES)[0]] ?? Object.values(QUESTIONNAIRES)[0];
   const qids = latest.questions.map((q) => q.id);
   const header = [
-    'Codice', 'Avvio (Europe/Rome)', 'Completamento (Europe/Rome)', 'Stato', 'Percorso', 'Test',
+    'Codice', 'Avvio (Europe/Rome)', 'Completamento (Europe/Rome)', 'Stato', 'Percorso', 'Lingua', 'Test',
     'Versione questionario', 'Versione demo', 'Fase corrente', 'Schermata email',
     'Esempi provati', 'Riferimento F1 (categoria)', 'Alternative aperte', 'Scelte', 'Clic passaggio al fornitore',
     ...qids.map((id) => `${id} — ${latest.questions.find((q) => q.id === id)?.short ?? ''}`),
@@ -68,7 +68,7 @@ export function participationsCsv(ds: Dataset, ps: DatasetParticipation[], inclu
     const f1 = p.explorations.find((e) => e.id === p.f1_exploration_id);
     return [
       p.code, dateTimeRome(p.started_at), dateTimeRome(p.completed_at), STATUS_LABEL[p.status],
-      p.path ? PATH_LABEL[p.path] : 'Non determinato', p.is_test ? 'Sì' : 'No',
+      p.path ? PATH_LABEL[p.path] : 'Non determinato', LANGUAGE_LABEL[langOf(p)], p.is_test ? 'Sì' : 'No',
       p.questionnaire_version, p.demo_version, p.current_step, EMAIL_SCREEN_LABEL[p.email_screen],
       p.explorations.map((e) => `${catLabel(e.category)} (${NEED_LABEL[e.need_id as NeedId]?.title ?? e.need_id})`).join(' | '),
       f1 ? catLabel(f1.category) : '',

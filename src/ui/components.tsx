@@ -1,6 +1,7 @@
 import { useId, type ReactNode, type ButtonHTMLAttributes } from 'react';
 import type { QOption } from '../config/questionnaire';
 import { IconAlert, IconCheck } from './icons';
+import { t, locale } from '../i18n';
 
 export function Button({ variant = 'primary', busy, children, className = '', ...rest }:
   ButtonHTMLAttributes<HTMLButtonElement> & { variant?: 'primary' | 'secondary' | 'ghost' | 'danger'; busy?: boolean }) {
@@ -73,7 +74,7 @@ export function TextAreaCounter({ label, value, onChange, max, help, rows = 5 }:
         onChange={(e) => onChange(e.target.value.slice(0, max))}
       />
       <p className={`counter ${left < 60 ? 'counter-low' : ''}`} id={`${id}-count`} aria-live="polite">
-        {value.length.toLocaleString('it-IT')} / {max.toLocaleString('it-IT')} caratteri
+        {t('chars', { n: value.length.toLocaleString(locale()), max: max.toLocaleString(locale()) })}
       </p>
     </div>
   );
@@ -99,6 +100,6 @@ export function SkipLink() {
       e.preventDefault();
       const m = document.getElementById('contenuto');
       if (m) { m.setAttribute('tabindex', '-1'); m.focus(); }
-    }}>Vai al contenuto</a>
+    }}>{t('skip')}</a>
   );
 }

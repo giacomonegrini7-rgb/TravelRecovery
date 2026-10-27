@@ -10,6 +10,14 @@ import type { Path } from './flow';
 export interface ClientFilters {
   path: 'all' | Path;
   category: 'all' | string;
+  language?: 'all' | 'it' | 'en';
+}
+
+export const LANGUAGE_LABEL: Record<'it' | 'en', string> = { it: 'Italiano', en: 'Inglese' };
+
+/** Lingua della partecipazione: i dati raccolti prima della versione inglese sono in italiano. */
+export function langOf(p: DatasetParticipation): 'it' | 'en' {
+  return p.language === 'en' ? 'en' : 'it';
 }
 
 export const PATH_LABEL: Record<Path, string> = {
@@ -21,7 +29,8 @@ export const PATH_LABEL: Record<Path, string> = {
 export function applyClientFilters(ps: DatasetParticipation[], f: ClientFilters): DatasetParticipation[] {
   return ps.filter((p) =>
     (f.path === 'all' || p.path === f.path) &&
-    (f.category === 'all' || p.explorations.some((e) => e.category === f.category)));
+    (f.category === 'all' || p.explorations.some((e) => e.category === f.category)) &&
+    (!f.language || f.language === 'all' || langOf(p) === f.language));
 }
 
 // ——— Rapporti ———

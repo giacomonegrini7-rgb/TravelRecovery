@@ -1,5 +1,6 @@
 import type { AnswerValue, StepId } from '../flow';
 import { SupabaseRest } from './supabaseRest';
+import type { Lang } from '../../i18n';
 import {
   BackendError,
   type AccessList, type AdminApi, type ContactRow, type Dataset, type DemoAction,
@@ -29,9 +30,9 @@ export class SupabasePublicBackend implements PublicBackend {
     };
   }
 
-  async start(clientKey: string): Promise<ParticipationState> {
+  async start(clientKey: string, language: Lang): Promise<ParticipationState> {
     await this.client.ensureAnonymous();
-    return this.client.rpc<ParticipationState>('start_participation', { p_client_key: clientKey }, { requireSession: true });
+    return this.client.rpc<ParticipationState>('start_participation', { p_client_key: clientKey, p_language: language }, { requireSession: true });
   }
 
   async load(id: string): Promise<ParticipationState> {

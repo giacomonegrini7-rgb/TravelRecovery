@@ -24,6 +24,7 @@ python3 tests/e2e/connected.py http://127.0.0.1:4174 "$OUT"
 echo "— Verifica nel database"
 "${PSQL[@]}" -d tr -At -F ' | ' -c "select 'partecipazioni', count(*), count(*) filter (where status='completed'), count(*) filter (where is_test) from participations;
 select 'risposte F1a/F1b', count(*) from answers where question_id in ('F1a','F1b') and status='answered';
+select 'lingua (it/en)', count(*) filter (where language='it'), count(*) filter (where language='en') from participations;
 select 'contatti', count(*) from contacts; select 'richieste', count(*) from subscription_requests;
 select 'eventi duplicati', count(*) - count(distinct (participation_id, event_type)) from events;
 select 'IP o user agent salvati', count(*) from information_schema.columns where table_schema='public' and column_name in ('ip', 'ip_address', 'user_agent', 'location', 'geo', 'latitude', 'longitude');"
